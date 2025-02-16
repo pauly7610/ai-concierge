@@ -1,0 +1,71 @@
+/* Zillow-inspired Typography */
+@import url('https://fonts.googleapis.com/css2?family=Gotham:wght@400;500;700&display=swap');
+
+:root {
+    /* Font Sizes */
+    --font-xs: 0.75rem;
+    --font-sm: 0.875rem;
+    --font-base: 1rem;
+    --font-lg: 1.125rem;
+    --font-xl: 1.25rem;
+    --font-2xl: 1.5rem;
+    --font-3xl: 2rem;
+
+    /* Line Heights */
+    --line-tight: 1.2;
+    --line-normal: 1.5;
+    --line-relaxed: 1.75;
+}
+
+body {
+    font-family: 'Gotham', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    color: var(--dark-text);
+    font-size: var(--font-base);
+    line-height: var(--line-normal);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Gotham', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    color: var(--dark-text);
+    margin-bottom: 0.5em;
+}
+
+h1 { 
+    font-size: var(--font-3xl); 
+    line-height: var(--line-tight); 
+}
+
+h2 { 
+    font-size: var(--font-2xl); 
+    line-height: var(--line-normal); 
+}
+
+h3 { 
+    font-size: var(--font-xl); 
+    line-height: var(--line-relaxed); 
+}
+
+.text-primary {
+    color: var(--primary-blue);
+}
+
+.text-secondary {
+    color: var(--light-text);
+}
+
+.ai-message {
+    font-style: italic;
+    color: var(--secondary-blue);
+    background-color: rgba(74, 144, 226, 0.1);
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+/* Responsive typography */
+@media (max-width: 768px) {
+    h1 { font-size: var(--font-2xl); }
+    h2 { font-size: var(--font-xl); }
+    h3 { font-size: var(--font-lg); }
+} 
