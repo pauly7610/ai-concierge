@@ -41,4 +41,15 @@ An AI-powered home search and recommendation platform built with React and Node.
 - Node.js
 - Express
 - MongoDB
-- AI Integration 
+- AI Integration
+
+## Secret Management
+
+### Environment Setup
+1. Copy `.env.example` to `.env`
+2. Fill in your API keys
+3. Never commit sensitive information
+
+### Key Rotation
+- Automatic key rotation scheduled every 90 days
+- Managed through GitHub Actions and Vault 

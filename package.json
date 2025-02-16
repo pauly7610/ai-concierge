@@ -5,7 +5,9 @@
     "tailwindcss": "^4.0.6"
   },
   "dependencies": {
-    "postcss-cli": "^11.0.0"
+    "axios": "^1.7.9",
+    "postcss-cli": "^11.0.0",
+    "unsplash-js": "^7.0.19"
   },
   "name": "zillow-ai-concierge",
   "version": "0.1.0",

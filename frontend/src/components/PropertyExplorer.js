@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { 
   Heart, 
@@ -10,9 +10,21 @@ import {
   Filter,
   SlidersHorizontal
 } from 'lucide-react';
+import { getPropertyTypeImage } from '../utils/stockImages';
 
 // Memoized Property Card Component
 const PropertyCard = React.memo(({ property, onPropertyView }) => {
+  const [propertyImage, setPropertyImage] = useState(property.image);
+
+  useEffect(() => {
+    const fetchPropertyImage = async () => {
+      const image = await getPropertyTypeImage(property.type);
+      setPropertyImage(image);
+    };
+
+    fetchPropertyImage();
+  }, [property.type]);
+
   const handleImageError = (e) => {
     e.target.src = 'https://via.placeholder.com/400x300?text=Property+Image';
   };
@@ -24,8 +36,8 @@ const PropertyCard = React.memo(({ property, onPropertyView }) => {
     >
       <div className="relative">
         <img
-          src={property.image}
-          alt={property.address}
+          src={propertyImage}
+          alt={`${property.type} at ${property.address}`}
           onError={handleImageError}
           className="w-full h-48 object-cover rounded-t-lg"
         />
