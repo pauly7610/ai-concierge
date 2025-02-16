@@ -6,5 +6,21 @@
   },
   "dependencies": {
     "postcss-cli": "^11.0.0"
+  },
+  "name": "zillow-ai-concierge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI-powered real estate platform revolutionizing home search experiences",
+  "keywords": [
+    "real-estate",
+    "ai",
+    "machine-learning",
+    "property-search",
+    "innovation"
+  ],
+  "homepage": "https://zillow-ai-concierge.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/zillow-ai-concierge"
   }
 }
