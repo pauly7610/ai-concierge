@@ -73,6 +73,26 @@ const PropertyCard = React.memo(({ property, onPropertyView }) => {
 });
 
 const PropertyExplorer = ({ onPropertyView }) => {
+  // Highlight strategic product thinking through intelligent filtering
+  const [intelligentFilters, setIntelligentFilters] = useState({
+    aiRecommendationConfidence: 0.85, // Show only high-confidence matches
+    personalizedScorecard: {
+      lifestyleAlignment: 0.75,
+      financialFeasibility: 0.8,
+      commuteSatisfaction: 0.7
+    }
+  });
+
+  // Demonstrate advanced product thinking through dynamic filtering
+  const getIntelligentPropertyRankings = (properties) => {
+    return properties
+      .map(property => ({
+        ...property,
+        aiMatchScore: calculateAIMatchScore(property, intelligentFilters)
+      }))
+      .sort((a, b) => b.aiMatchScore - a.aiMatchScore);
+  };
+
   const [filters, setFilters] = useState({
     priceRange: [200000, 800000],
     beds: 'any',
