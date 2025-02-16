@@ -1,6 +1,12 @@
 import axios from 'axios';
 
-const UNSPLASH_ACCESS_KEY = 'YOUR_UNSPLASH_ACCESS_KEY';
+const accessKey = process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
+const secretKey = process.env.REACT_APP_UNSPLASH_SECRET_KEY;
+
+// Add runtime validation
+if (!accessKey || !secretKey) {
+  console.error('Missing Unsplash API credentials');
+}
 
 export const getPropertyStockImages = async (query = 'modern house', count = 10) => {
   try {
@@ -11,7 +17,7 @@ export const getPropertyStockImages = async (query = 'modern house', count = 10)
         orientation: 'landscape'
       },
       headers: {
-        'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
+        'Authorization': `Client-ID ${accessKey}`
       }
     });
 
