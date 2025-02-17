@@ -74,13 +74,17 @@ describe('PersistentImageCache', () => {
       mockKeys.includes(key) ? JSON.stringify({ data: 'test', expiry: Date.now() + 1000 }) : null
     );
     
+    // Simulate keys in localStorage
     Object.defineProperty(localStorageMock, 'length', { value: mockKeys.length });
+    
+    // Spy on removeItem
+    const removeItemSpy = jest.spyOn(localStorageMock, 'removeItem');
 
     cache.clear();
 
-    expect(localStorageMock.removeItem).toHaveBeenCalledTimes(2);
+    expect(removeItemSpy).toHaveBeenCalledTimes(2);
     mockKeys.forEach(key => {
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith(key);
+      expect(removeItemSpy).toHaveBeenCalledWith(key);
     });
   });
 });

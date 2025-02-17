@@ -76,6 +76,15 @@ class ImageCache {
       
       this.cache.delete(oldestKey);
     }
+
+    // Ensure we don't exceed max size
+    if (this.cache.size > this.maxSize) {
+      const excessEntries = [...this.cache.entries()]
+        .sort((a, b) => a[1].timestamp - b[1].timestamp)
+        .slice(0, this.cache.size - this.maxSize);
+      
+      excessEntries.forEach(([key]) => this.cache.delete(key));
+    }
   }
 
   getStats() {
@@ -105,8 +114,11 @@ class PersistentImageCache {
   get(key) {
     try {
       const storedItem = this.storage.getItem(`${this.CACHE_KEY}_${key}`);
+      
+      // If no item found, return null
       if (!storedItem) return null;
 
+      // Attempt to parse the JSON
       const cacheEntry = JSON.parse(storedItem);
       
       // Check if entry is expired
@@ -117,14 +129,16 @@ class PersistentImageCache {
 
       return cacheEntry.data;
     } catch (error) {
-      console.error('Local storage retrieval failed:', error);
+      // If JSON parsing fails, remove the corrupt entry and return null
+      this.storage.removeItem(`${this.CACHE_KEY}_${key}`);
       return null;
     }
   }
 
   clear() {
+    // Find and remove all keys that start with the cache prefix
     Object.keys(this.storage)
-      .filter(key => key.startsWith(this.CACHE_KEY))
+      .filter(key => key.startsWith(`${this.CACHE_KEY}_`))
       .forEach(key => this.storage.removeItem(key));
   }
 }
