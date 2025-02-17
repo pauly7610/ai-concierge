@@ -5,34 +5,41 @@ const {
   scoreImageRelevance 
 } = require('../stockImages');
 
-// Mock axios and localStorage
+// Mock axios
 jest.mock('axios');
-const localStorageMock = (() => {
+
+// Create a more robust localStorage mock
+const createLocalStorageMock = () => {
   let store = {};
   return {
     getItem: jest.fn(key => store[key] || null),
     setItem: jest.fn((key, value) => {
       store[key] = value.toString();
     }),
-    clear: jest.fn(() => {
-      store = {};
-    }),
     removeItem: jest.fn(key => {
       delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
     })
   };
-})();
-
-Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+};
 
 describe('Stock Images Utility', () => {
+  let localStorageMock;
+
   beforeEach(() => {
     // Reset mocks
-    axios.get.mockClear();
-    localStorageMock.getItem.mockClear();
-    localStorageMock.setItem.mockClear();
+    localStorageMock = createLocalStorageMock();
+    Object.defineProperty(window, 'localStorage', { 
+      value: localStorageMock,
+      writable: true 
+    });
 
-    // Set up environment
+    // Reset axios mock
+    axios.get.mockReset();
+
+    // Restore environment
     process.env.REACT_APP_UNSPLASH_ACCESS_KEY = 'test_key';
   });
 

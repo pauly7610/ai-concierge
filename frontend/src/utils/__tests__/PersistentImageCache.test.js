@@ -1,22 +1,32 @@
 const { PersistentImageCache } = require('../stockImages');
 
+// Create a more robust localStorage mock
+const createLocalStorageMock = () => {
+  let store = {};
+  return {
+    getItem: jest.fn(key => store[key] || null),
+    setItem: jest.fn((key, value) => {
+      store[key] = value.toString();
+    }),
+    removeItem: jest.fn(key => {
+      delete store[key];
+    }),
+    clear: jest.fn(() => {
+      store = {};
+    })
+  };
+};
+
 describe('PersistentImageCache', () => {
   let cache;
-  const localStorageMock = (() => {
-    let store = {};
-    return {
-      getItem: jest.fn(key => store[key] || null),
-      setItem: jest.fn((key, value) => {
-        store[key] = value.toString();
-      }),
-      removeItem: jest.fn(key => {
-        delete store[key];
-      })
-    };
-  })();
+  let localStorageMock;
 
   beforeEach(() => {
-    Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+    localStorageMock = createLocalStorageMock();
+    Object.defineProperty(window, 'localStorage', { 
+      value: localStorageMock,
+      writable: true 
+    });
     cache = new PersistentImageCache();
     localStorageMock.clear(); // Reset store before each test
   });
