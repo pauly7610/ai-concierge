@@ -1,4 +1,4 @@
-import { ImageCache } from '../stockImages';
+const { ImageCache } = require('../stockImages');
 
 describe('ImageCache', () => {
   let cache;

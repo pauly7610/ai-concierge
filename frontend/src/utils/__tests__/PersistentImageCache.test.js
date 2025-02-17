@@ -1,4 +1,4 @@
-import { PersistentImageCache } from '../stockImages';
+const { PersistentImageCache } = require('../stockImages');
 
 describe('PersistentImageCache', () => {
   let cache;

@@ -11,6 +11,7 @@ jobs:
         with:
           node-version: '18.x'
       - run: npm ci
+      - run: npm install --workspace=frontend
       - run: npm run test:frontend
 
   backend-test:

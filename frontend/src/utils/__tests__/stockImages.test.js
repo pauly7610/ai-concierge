@@ -1,9 +1,9 @@
-import axios from 'axios';
-import { 
+const axios = require('axios');
+const { 
   getPropertyStockImages, 
   getPropertyTypeImage, 
   scoreImageRelevance 
-} from '../stockImages';
+} = require('../stockImages');
 
 // Mock axios and localStorage
 jest.mock('axios');

@@ -272,4 +272,12 @@ export const scoreImageRelevance = (photo, query) => {
   const aspectRatioScore = photo.width / photo.height > 1.5 ? 1 : 0;
 
   return (descriptionScore + qualityScore + aspectRatioScore) / 3;
+};
+
+module.exports = {
+  getPropertyStockImages,
+  getPropertyTypeImage,
+  scoreImageRelevance,
+  ImageCache,
+  PersistentImageCache
 }; 
