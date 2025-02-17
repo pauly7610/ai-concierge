@@ -5,8 +5,10 @@ const {
   scoreImageRelevance 
 } = require('../stockImages');
 
-// Mock axios
-jest.mock('axios');
+// Properly mock axios
+jest.mock('axios', () => ({
+  get: jest.fn()
+}));
 
 // Create a more robust localStorage mock
 const createLocalStorageMock = () => {

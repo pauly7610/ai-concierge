@@ -6,7 +6,7 @@ const createLocalStorageMock = () => {
   return {
     getItem: jest.fn(key => store[key] || null),
     setItem: jest.fn((key, value) => {
-      store[key] = value.toString();
+      store[key] = JSON.stringify(value);
     }),
     removeItem: jest.fn(key => {
       delete store[key];
@@ -32,18 +32,20 @@ describe('PersistentImageCache', () => {
   });
 
   it('sets and retrieves cache entries', () => {
-    cache.set('testKey', { data: 'testValue' });
+    const testData = { data: 'testValue' };
+    cache.set('testKey', testData);
     
     expect(localStorageMock.setItem).toHaveBeenCalled();
     
     const retrievedValue = cache.get('testKey');
-    expect(retrievedValue).toEqual({ data: 'testValue' });
+    expect(retrievedValue).toEqual(testData);
   });
 
   it('expires entries after cache duration', () => {
     jest.useFakeTimers();
     
-    cache.set('expiredKey', { data: 'oldValue' });
+    const testData = { data: 'oldValue' };
+    cache.set('expiredKey', testData);
     
     // Fast forward past cache duration
     jest.advanceTimersByTime(25 * 60 * 60 * 1000);
@@ -54,7 +56,6 @@ describe('PersistentImageCache', () => {
     jest.useRealTimers(); // Reset timers
   });
 
-  // Additional recommended tests
   it('handles JSON parsing errors', () => {
     // Simulate a corrupt localStorage entry
     localStorageMock.getItem.mockReturnValueOnce('invalid json');

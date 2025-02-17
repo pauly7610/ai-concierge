@@ -82,27 +82,23 @@ class PersistentImageCache {
     this.CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
   }
 
-  set(key, value) {
-    try {
-      const cacheEntry = {
-        data: value,
-        timestamp: Date.now()
-      };
-      this.storage.setItem(`${this.CACHE_KEY}_${key}`, JSON.stringify(cacheEntry));
-    } catch (error) {
-      console.error('Local storage caching failed:', error);
-    }
+  set(key, data, duration = 24 * 60 * 60 * 1000) {
+    const cacheEntry = {
+      data,
+      expiry: Date.now() + duration
+    };
+    this.storage.setItem(`${this.CACHE_KEY}_${key}`, JSON.stringify(cacheEntry));
   }
 
   get(key) {
     try {
-      const cacheEntryString = this.storage.getItem(`${this.CACHE_KEY}_${key}`);
-      if (!cacheEntryString) return null;
+      const storedItem = this.storage.getItem(`${this.CACHE_KEY}_${key}`);
+      if (!storedItem) return null;
 
-      const cacheEntry = JSON.parse(cacheEntryString);
+      const cacheEntry = JSON.parse(storedItem);
       
       // Check if entry is expired
-      if (Date.now() - cacheEntry.timestamp > this.CACHE_DURATION) {
+      if (Date.now() > cacheEntry.expiry) {
         this.storage.removeItem(`${this.CACHE_KEY}_${key}`);
         return null;
       }
