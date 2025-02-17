@@ -78,13 +78,14 @@ describe('PersistentImageCache', () => {
     // Create cache with mocked localStorage
     const cache = new PersistentImageCache();
     cache.storage = {
-      removeItem: removeItemSpy
+      removeItem: removeItemSpy,
+      keys: mockKeys
     };
 
     cache.clear();
 
-    // Use a direct comparison
-    expect(removeItemSpy).toHaveBeenCalledTimes(2);
+    // Explicitly check the number of calls
+    expect(removeItemSpy.mock.calls.length).toBe(2);
     mockKeys.forEach(key => {
       expect(removeItemSpy).toHaveBeenCalledWith(key);
     });
