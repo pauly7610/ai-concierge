@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { createApi } from 'unsplash-js';
 
 // Add to existing code
 const CACHE_MAX_SIZE = 100; // Maximum number of entries
@@ -126,11 +126,8 @@ const selectCache = () => {
     : IMAGE_CACHE;
 };
 
-const accessKey = process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
-const secretKey = process.env.REACT_APP_UNSPLASH_SECRET_KEY;
-
-// Comprehensive error handling
-class ImageFetchError extends Error {
+// Error class for better error handling
+export class ImageFetchError extends Error {
   constructor(message, type) {
     super(message);
     this.name = 'ImageFetchError';
@@ -138,142 +135,108 @@ class ImageFetchError extends Error {
   }
 }
 
-// Enhanced query options with more diversity
-const PROPERTY_TYPE_QUERIES = {
-  'Single Family': [
-    'modern suburban home with large yard',
-    'traditional family house with trees',
-    'spacious suburban residence with landscaping',
-    'well-maintained family property with garage',
-    'american suburban house with front porch',
-    'mid-century modern family home'
-  ],
-  'Townhouse': [
-    'contemporary urban townhouse with balcony',
-    'modern multi-level townhome with brick facade',
-    'stylish city townhouse with rooftop terrace',
-    'architectural townhouse design in historic district',
-    'minimalist urban townhouse',
-    'townhouse with contemporary architectural elements'
-  ],
-  'Condo': [
-    'luxury high-rise condo with city view',
-    'modern urban apartment with floor-to-ceiling windows',
-    'sleek city condominium with open floor plan',
-    'minimalist condo interior with natural light',
-    'waterfront condo with modern design',
-    'downtown luxury condominium'
-  ],
-  'default': [
-    'real estate', 
-    'modern home', 
-    'property', 
-    'residential building', 
-    'architectural home design'
-  ]
-};
-
-// Usage remains the same, but now uses selected cache
-export const getPropertyStockImages = async (query, count = 3) => {
-  const cache = selectCache();
+// Centralized Unsplash client creation
+const createUnsplashClient = () => {
+  const accessKey = process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
   
-  // Check cache first
-  const cacheKey = `${query}_${count}`;
-  const cachedResult = cache.get(cacheKey);
-  if (cachedResult) return cachedResult;
-
-  try {
-    if (!accessKey) {
-      throw new ImageFetchError('Missing Unsplash API key', 'CONFIGURATION');
+  if (!accessKey) {
+    console.error('🚨 Unsplash API key is missing!');
+    // Optional: Add more detailed logging or error tracking
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('Tip: Check your .env file or GitHub Secrets configuration');
     }
-
-    const response = await axios.get('https://api.unsplash.com/photos/random', {
-      params: {
-        query: query,
-        count: count,
-        orientation: 'landscape',
-        content_filter: 'high'
-      },
-      headers: {
-        'Authorization': `Client-ID ${accessKey}`
-      },
-      timeout: 10000 // 10-second timeout
-    });
-
-    const processedImages = response.data.map(photo => ({
-      full: photo.urls.full,
-      regular: photo.urls.regular,
-      small: photo.urls.small,
-      thumbnail: photo.urls.thumb,
-      alt: photo.alt_description || `${query} property image`,
-      photographer: photo.user.name,
-      photographerLink: photo.user.links.html,
-      relevanceScore: scoreImageRelevance(photo, query)
-    }));
-
-    // Sort images by relevance score
-    const sortedImages = processedImages.sort((a, b) => b.relevanceScore - a.relevanceScore);
-
-    // Cache the result
-    cache.set(cacheKey, sortedImages);
-
-    return sortedImages;
-
-  } catch (error) {
-    console.error('Image Fetch Error:', error);
-    
-    if (error.response) {
-      // The request was made and the server responded with a status code
-      throw new ImageFetchError(`API Error: ${error.response.status}`, 'API_ERROR');
-    } else if (error.request) {
-      // The request was made but no response was received
-      throw new ImageFetchError('No response from Unsplash', 'NETWORK_ERROR');
-    } else {
-      // Something happened in setting up the request
-      throw new ImageFetchError('Error configuring image request', 'CONFIG_ERROR');
-    }
+    return null;
   }
+
+  return createApi({
+    accessKey: accessKey
+  });
 };
 
-export const getPropertyTypeImage = async (type) => {
+// Enhanced image relevance scoring
+export const scoreImageRelevance = (image, keywords) => {
+  if (!image || !keywords) return 0;
+
+  const relevanceFactors = keywords.map(keyword => 
+    image.description?.toLowerCase().includes(keyword.toLowerCase()) ? 1 : 0
+  );
+  
+  const score = relevanceFactors.reduce((sum, factor) => sum + factor, 0) / keywords.length;
+  return Math.min(score, 1); // Ensure score never exceeds 1
+};
+
+// Flexible property type image fetching
+export const getPropertyTypeImage = async (type, unsplashInstance = null) => {
+  const PROPERTY_TYPE_QUERIES = {
+    'Single Family': ['modern suburban home', 'family house'],
+    'Townhouse': ['urban townhouse', 'city living'],
+    'Condo': ['luxury condo', 'apartment complex'],
+    'Apartment': ['urban apartment', 'city apartment'],
+    'default': ['residential property', 'modern home']
+  };
+
   try {
     const queryOptions = PROPERTY_TYPE_QUERIES[type] || PROPERTY_TYPE_QUERIES['default'];
     const randomQuery = queryOptions[Math.floor(Math.random() * queryOptions.length)];
     
-    const images = await getPropertyStockImages(randomQuery, 3);
+    const image = await getPropertyStockImages(randomQuery, unsplashInstance);
     
-    // Preference order with fallback
-    return images[0]?.regular || 
-           images[0]?.small || 
-           'https://via.placeholder.com/400x300?text=Property+Image';
-
+    return image || 'https://via.placeholder.com/400x300?text=Property+Image';
   } catch (error) {
     console.error(`Failed to get image for ${type}:`, error);
     return 'https://via.placeholder.com/400x300?text=Property+Image';
   }
 };
 
-// Enhanced relevance scoring
-export const scoreImageRelevance = (photo, query) => {
-  const keywords = query.toLowerCase().split(' ');
-  
-  const descriptionScore = keywords.reduce((score, keyword) => {
-    const altMatch = photo.alt_description?.toLowerCase().includes(keyword) ? 1 : 0;
-    const tagsMatch = photo.tags?.some(tag => tag.toLowerCase().includes(keyword)) ? 1 : 0;
-    return score + altMatch + tagsMatch;
-  }, 0);
+// Comprehensive image fetching with robust error handling
+export const getPropertyStockImages = async (query, unsplashInstance = null) => {
+  // Placeholder for development/testing
+  if (!process.env.REACT_APP_UNSPLASH_ACCESS_KEY && !unsplashInstance) {
+    console.warn('No Unsplash API key available');
+    return 'https://via.placeholder.com/400x300?text=Property+Image';
+  }
 
-  // Additional scoring factors
-  const qualityScore = photo.width > 1200 ? 1 : 0;
-  const aspectRatioScore = photo.width / photo.height > 1.5 ? 1 : 0;
+  try {
+    const unsplash = unsplashInstance || createUnsplashClient();
+    
+    if (!unsplash) {
+      throw new ImageFetchError('Unsplash client not initialized', 'CONFIG_ERROR');
+    }
 
-  return (descriptionScore + qualityScore + aspectRatioScore) / 3;
+    const result = await unsplash.photos.search({
+      query,
+      page: 1,
+      perPage: 3,
+      orientation: 'landscape'
+    });
+
+    if (result.response?.results?.[0]?.urls?.regular) {
+      return result.response.results.map(photo => ({
+        regular: photo.urls.regular,
+        description: photo.description,
+        photographer: photo.user.name
+      }));
+    }
+    
+    return 'https://via.placeholder.com/400x300?text=Property+Image';
+  } catch (error) {
+    console.error('Image Fetch Error:', error);
+    
+    // Specific error handling
+    if (error.name === 'ImageFetchError') {
+      // Handle configuration errors
+      return 'https://via.placeholder.com/400x300?text=Configuration+Error';
+    }
+    
+    // Network or other errors
+    return 'https://via.placeholder.com/400x300?text=Property+Image';
+  }
 };
 
-module.exports = {
+// Export for testing and usage
+export default {
   getPropertyStockImages,
   getPropertyTypeImage,
   scoreImageRelevance,
-  ImageCache,
-  PersistentImageCache
+  ImageFetchError
 }; 

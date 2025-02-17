@@ -10,6 +10,11 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: '18.x'
+      - name: Set up environment variables
+        env:
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
+        run: |
+          echo "REACT_APP_UNSPLASH_ACCESS_KEY=$UNSPLASH_ACCESS_KEY" >> $GITHUB_ENV
       - run: npm ci
       - run: npm install --workspace=frontend
       - run: npm run test:frontend
