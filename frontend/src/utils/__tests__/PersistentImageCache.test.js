@@ -83,8 +83,8 @@ describe('PersistentImageCache', () => {
 
     cache.clear();
 
-    // Use toHaveBeenCalledTimes from jest.fn()
-    expect(removeItemSpy.mock.calls.length).toBe(2);
+    // Use expect().toEqual() instead of .toBe()
+    expect(removeItemSpy.mock.calls.length).toEqual(2);
     mockKeys.forEach(key => {
       expect(removeItemSpy).toHaveBeenCalledWith(key);
     });
