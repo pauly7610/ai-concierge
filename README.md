@@ -52,4 +52,33 @@ An AI-powered home search and recommendation platform built with React and Node.
 
 ### Key Rotation
 - Automatic key rotation scheduled every 90 days
-- Managed through GitHub Actions and Vault 
+- Managed through GitHub Actions and Vault
+
+## �� Technology Stack
+
+### Frontend Frameworks & Libraries
+- **React 19**: Modern UI development
+- **React DOM**: Rendering and DOM manipulation
+- **Tailwind CSS**: Utility-first styling
+- **PostCSS**: CSS transformation
+- **Headless UI**: Unstyled, accessible UI components
+- **Heroicons**: SVG icon library
+- **Lucide React**: Beautifully crafted open-source icons
+
+### Data Visualization
+- **Recharts**: Composable charting library
+
+### UI/UX Components
+- **ShadCN UI**: Beautifully designed components
+- **Headless UI**: Accessible, unstyled component primitives
+
+### Development Tools
+- **React Scripts**: Create React App build scripts
+- **Testing Library**: Component and hook testing
+- **Jest**: JavaScript testing framework
+
+### Key Features Enabled by These Technologies:
+- Responsive, accessible design
+- Performance-optimized rendering
+- Comprehensive testing infrastructure
+- Modular, composable UI components 

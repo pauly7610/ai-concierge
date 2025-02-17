@@ -1,12 +1,23 @@
 {
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.2.0",
     "autoprefixer": "^10.4.20",
+    "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.5.2",
     "tailwindcss": "^4.0.6"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.0",
+    "@heroicons/react": "^2.2.0",
+    "@shadcn/ui": "^0.0.4",
     "axios": "^1.7.9",
+    "lucide-react": "^0.475.0",
     "postcss-cli": "^11.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-scripts": "^5.0.1",
+    "recharts": "^2.15.1",
     "unsplash-js": "^7.0.19"
   },
   "name": "zillow-ai-concierge",
@@ -24,5 +35,26 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/yourusername/zillow-ai-concierge"
+  },
+  "scripts": {
+    "test": "react-scripts test",
+    "test:coverage": "react-scripts test --coverage",
+    "docs:tech": "npx docsify serve docs",
+    "storybook": "start-storybook -p 6006",
+    "build-storybook": "build-storybook"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "src/utils/**/*.{js,jsx}",
+      "!src/utils/**/*.test.{js,jsx}"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
   }
 }
