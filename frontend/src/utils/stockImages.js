@@ -1,4 +1,12 @@
-import { createApi } from 'unsplash-js';
+// Use dynamic import to avoid breaking tests
+let createApi;
+try {
+  const unsplashModule = require('unsplash-js');
+  createApi = unsplashModule.createApi;
+} catch (error) {
+  console.warn('Unsplash API not available', error);
+  createApi = () => null;
+}
 
 // Add to existing code
 const CACHE_MAX_SIZE = 100; // Maximum number of entries

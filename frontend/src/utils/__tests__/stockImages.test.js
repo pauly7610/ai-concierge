@@ -5,7 +5,7 @@ import {
   ImageFetchError
 } from '../stockImages';
 
-// Mock Unsplash
+// Mock the entire unsplash-js module
 jest.mock('unsplash-js', () => ({
   createApi: jest.fn(() => ({
     photos: {

@@ -1,7 +1,7 @@
 module.exports = {
   testEnvironment: 'jsdom',
   transformIgnorePatterns: [
-    "/node_modules/(?!axios)/"
+    "/node_modules/(?!axios|unsplash-js)/"
   ],
   transform: {
     "^.+\\.(js|jsx)$": "babel-jest"
