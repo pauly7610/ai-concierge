@@ -39,7 +39,9 @@
     "url": "https://github.com/yourusername/zillow-ai-concierge"
   },
   "scripts": {
-    "test": "react-scripts test",
+    "test:frontend": "cd frontend && npm test",
+    "test:backend": "cd backend && npm test",
+    "test": "npm run test:frontend && npm run test:backend",
     "test:coverage": "react-scripts test --coverage",
     "docs:tech": "npx docsify serve docs",
     "storybook": "start-storybook -p 6006",
@@ -58,5 +60,9 @@
         "statements": 80
       }
     }
-  }
+  },
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
 }
