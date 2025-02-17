@@ -67,11 +67,20 @@ describe('PersistentImageCache', () => {
   });
 
   it('clears entire cache', () => {
-    cache.set('key1', { data: 'value1' });
-    cache.set('key2', { data: 'value2' });
+    const mockKeys = ['ZILLOW_IMAGE_CACHE_key1', 'ZILLOW_IMAGE_CACHE_key2'];
     
+    // Simulate localStorage with specific keys
+    localStorageMock.getItem.mockImplementation(key => 
+      mockKeys.includes(key) ? JSON.stringify({ data: 'test', expiry: Date.now() + 1000 }) : null
+    );
+    
+    Object.defineProperty(localStorageMock, 'length', { value: mockKeys.length });
+
     cache.clear();
 
     expect(localStorageMock.removeItem).toHaveBeenCalledTimes(2);
+    mockKeys.forEach(key => {
+      expect(localStorageMock.removeItem).toHaveBeenCalledWith(key);
+    });
   });
 });

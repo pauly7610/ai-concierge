@@ -68,12 +68,13 @@ class ImageCache {
     expiredKeys.forEach(key => this.cache.delete(key));
     
     // If still over max size, remove oldest entries
-    if (this.cache.size > this.maxSize) {
-      const sortedEntries = [...this.cache.entries()]
-        .sort((a, b) => a[1].timestamp - b[1].timestamp);
+    while (this.cache.size > this.maxSize) {
+      const oldestKey = [...this.cache.entries()]
+        .reduce((oldest, current) => 
+          current[1].timestamp < oldest[1].timestamp ? current : oldest
+        )[0];
       
-      const entriesToRemove = sortedEntries.slice(0, this.cache.size - this.maxSize);
-      entriesToRemove.forEach(([key]) => this.cache.delete(key));
+      this.cache.delete(oldestKey);
     }
   }
 
@@ -177,9 +178,9 @@ const getPropertyTypeImage = async (type, unsplashInstance = null) => {
     const queryOptions = PROPERTY_TYPE_QUERIES[type] || PROPERTY_TYPE_QUERIES['default'];
     const randomQuery = queryOptions[Math.floor(Math.random() * queryOptions.length)];
     
-    const image = await getPropertyStockImages(randomQuery, unsplashInstance);
+    const images = await getPropertyStockImages(randomQuery, unsplashInstance);
     
-    return image || 'https://via.placeholder.com/400x300?text=Property+Image';
+    return images[0]?.regular || 'https://via.placeholder.com/400x300?text=Property+Image';
   } catch (error) {
     console.error(`Failed to get image for ${type}:`, error);
     return 'https://via.placeholder.com/400x300?text=Property+Image';
@@ -188,24 +189,22 @@ const getPropertyTypeImage = async (type, unsplashInstance = null) => {
 
 // Comprehensive image fetching with robust error handling
 const getPropertyStockImages = async (query, unsplashInstance = null) => {
+  const fallbackImage = [{
+    regular: 'https://example.com/test-image.jpg',
+    description: 'Modern suburban home with large yard',
+    photographer: 'Test Photographer'
+  }];
+
   // Placeholder for development/testing
   if (!process.env.REACT_APP_UNSPLASH_ACCESS_KEY && !unsplashInstance) {
-    return [{
-      regular: 'https://example.com/test-image.jpg',
-      description: 'Modern suburban home with large yard',
-      photographer: 'Test Photographer'
-    }];
+    return fallbackImage;
   }
 
   try {
     const unsplash = unsplashInstance || createUnsplashClient();
     
     if (!unsplash) {
-      return [{
-        regular: 'https://example.com/test-image.jpg',
-        description: 'Modern suburban home with large yard',
-        photographer: 'Test Photographer'
-      }];
+      return fallbackImage;
     }
 
     const result = await unsplash.photos.search({
@@ -223,19 +222,10 @@ const getPropertyStockImages = async (query, unsplashInstance = null) => {
       }));
     }
     
-    return [{
-      regular: 'https://example.com/test-image.jpg',
-      description: 'Modern suburban home with large yard',
-      photographer: 'Test Photographer'
-    }];
+    return fallbackImage;
   } catch (error) {
     console.error('Image Fetch Error:', error);
-    
-    return [{
-      regular: 'https://example.com/test-image.jpg',
-      description: 'Modern suburban home with large yard',
-      photographer: 'Test Photographer'
-    }];
+    return fallbackImage;
   }
 };
 

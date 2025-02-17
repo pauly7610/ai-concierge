@@ -68,7 +68,7 @@ describe('Stock Images Utility', () => {
       const singleFamilyImage = await getPropertyTypeImage('Single Family');
       const townhouseImage = await getPropertyTypeImage('Townhouse');
       
-      expect(singleFamilyImage).toContain('https://');
+      expect(singleFamilyImage).toMatch(/^https:\/\//);
     });
   });
 
