@@ -1,12 +1,14 @@
 module.exports = {
-  roots: ['<rootDir>/src'],
-  testEnvironment: 'jsdom',
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+  transform: {
+    "^.+\\.(js|jsx)$": "babel-jest"
   },
-  setupFilesAfterEnv: ['<rootDir>/src/setupTests.js'],
-  testMatch: [
-    '**/__tests__/**/*.+(ts|tsx|js)',
-    '**/?(*.)+(spec|test).+(ts|tsx|js)'
-  ]
-}; 
+  transformIgnorePatterns: [
+    "/node_modules/(?!axios).+\\.js$"
+  ],
+  moduleNameMapper: {
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js"
+  },
+  setupFilesAfterEnv: ["<rootDir>/src/setupTests.js"],
+  testEnvironment: "jsdom"
+}
