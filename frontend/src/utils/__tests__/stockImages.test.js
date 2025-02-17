@@ -1,9 +1,9 @@
-import { 
+const { 
   getPropertyStockImages, 
   getPropertyTypeImage, 
   scoreImageRelevance,
   ImageFetchError
-} from '../stockImages';
+} = require('../stockImages');
 
 // Mock the entire unsplash-js module
 jest.mock('unsplash-js', () => ({

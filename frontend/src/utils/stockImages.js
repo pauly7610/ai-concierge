@@ -8,81 +8,67 @@ try {
   createApi = () => null;
 }
 
-// Add to existing code
-const CACHE_MAX_SIZE = 100; // Maximum number of entries
-const CACHE_PRUNE_THRESHOLD = 0.8; // Prune when 80% full
-
-// Enhanced cache management
+// Cache implementation
 class ImageCache {
-  constructor(maxSize = CACHE_MAX_SIZE) {
-    this.data = new Map();
-    this.timestamps = new Map();
-    this.CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-    this.MAX_SIZE = maxSize;
+  constructor(maxSize = 100) {
+    this.maxSize = maxSize;
+    this.cache = new Map();
   }
 
   set(key, value) {
-    // Prune cache if approaching max size
-    this.pruneIfNeeded();
-
-    this.data.set(key, value);
-    this.timestamps.set(key, Date.now());
+    if (this.cache.size >= this.maxSize) {
+      this.prune();
+    }
+    this.cache.set(key, {
+      value,
+      timestamp: Date.now()
+    });
   }
 
   get(key) {
-    const timestamp = this.timestamps.get(key);
-    if (timestamp && (Date.now() - timestamp) < this.CACHE_DURATION) {
-      // Update access time to prevent early eviction
-      this.timestamps.set(key, Date.now());
-      return this.data.get(key);
-    }
-    
-    // Remove expired entries
-    if (timestamp) {
-      this.data.delete(key);
-      this.timestamps.delete(key);
-    }
-    
-    return null;
-  }
+    const entry = this.cache.get(key);
+    if (!entry) return null;
 
-  pruneIfNeeded() {
-    // Check if cache is approaching max size
-    if (this.data.size >= this.MAX_SIZE * CACHE_PRUNE_THRESHOLD) {
-      this.prune();
+    // Check if entry is expired (24 hours)
+    if (Date.now() - entry.timestamp > 24 * 60 * 60 * 1000) {
+      this.cache.delete(key);
+      return null;
     }
+
+    return entry.value;
   }
 
   prune() {
-    // Sort entries by timestamp (oldest first)
-    const sortedEntries = [...this.timestamps.entries()]
-      .sort((a, b) => a[1] - b[1]);
+    const now = Date.now();
+    const expiredKeys = [];
 
-    // Remove the oldest 20% of entries
-    const entriesToRemove = sortedEntries.slice(0, Math.floor(this.MAX_SIZE * 0.2));
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.timestamp > 24 * 60 * 60 * 1000) {
+        expiredKeys.push(key);
+      }
+    }
 
-    entriesToRemove.forEach(([key]) => {
-      this.data.delete(key);
-      this.timestamps.delete(key);
-    });
-
-    console.log(`Pruned cache. Removed ${entriesToRemove.length} entries.`);
+    expiredKeys.forEach(key => this.cache.delete(key));
+    
+    // If still over max size, remove oldest entries
+    if (this.cache.size > this.maxSize) {
+      const sortedEntries = [...this.cache.entries()]
+        .sort((a, b) => a[1].timestamp - b[1].timestamp);
+      
+      const entriesToRemove = sortedEntries.slice(0, this.cache.size - this.maxSize);
+      entriesToRemove.forEach(([key]) => this.cache.delete(key));
+    }
   }
 
-  // Monitoring method
   getStats() {
     return {
-      currentSize: this.data.size,
-      maxSize: this.MAX_SIZE,
-      utilizationPercentage: (this.data.size / this.MAX_SIZE) * 100
+      currentSize: this.cache.size,
+      maxSize: this.maxSize
     };
   }
 }
 
-// Replace previous IMAGE_CACHE with new implementation
-const IMAGE_CACHE = new ImageCache();
-
-// Persistent Caching Option for Production
+// Persistent Caching Option
 class PersistentImageCache {
   constructor() {
     this.storage = window.localStorage;
@@ -90,7 +76,7 @@ class PersistentImageCache {
     this.CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
   }
 
-  set(key, data, duration = 24 * 60 * 60 * 1000) {
+  set(key, data, duration = this.CACHE_DURATION) {
     const cacheEntry = {
       data,
       expiry: Date.now() + duration
@@ -118,7 +104,6 @@ class PersistentImageCache {
     }
   }
 
-  // Optional: Clear entire cache
   clear() {
     Object.keys(this.storage)
       .filter(key => key.startsWith(this.CACHE_KEY))
@@ -126,16 +111,8 @@ class PersistentImageCache {
   }
 }
 
-// Conditional cache selection
-const selectCache = () => {
-  // Use persistent cache in production, in-memory in development
-  return process.env.NODE_ENV === 'production' 
-    ? new PersistentImageCache() 
-    : IMAGE_CACHE;
-};
-
 // Error class for better error handling
-export class ImageFetchError extends Error {
+class ImageFetchError extends Error {
   constructor(message, type) {
     super(message);
     this.name = 'ImageFetchError';
@@ -149,10 +126,6 @@ const createUnsplashClient = () => {
   
   if (!accessKey) {
     console.error('🚨 Unsplash API key is missing!');
-    // Optional: Add more detailed logging or error tracking
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('Tip: Check your .env file or GitHub Secrets configuration');
-    }
     return null;
   }
 
@@ -162,7 +135,7 @@ const createUnsplashClient = () => {
 };
 
 // Enhanced image relevance scoring
-export const scoreImageRelevance = (image, keywords) => {
+const scoreImageRelevance = (image, keywords) => {
   if (!image || !keywords) return 0;
 
   const relevanceFactors = keywords.map(keyword => 
@@ -174,7 +147,7 @@ export const scoreImageRelevance = (image, keywords) => {
 };
 
 // Flexible property type image fetching
-export const getPropertyTypeImage = async (type, unsplashInstance = null) => {
+const getPropertyTypeImage = async (type, unsplashInstance = null) => {
   const PROPERTY_TYPE_QUERIES = {
     'Single Family': ['modern suburban home', 'family house'],
     'Townhouse': ['urban townhouse', 'city living'],
@@ -197,10 +170,9 @@ export const getPropertyTypeImage = async (type, unsplashInstance = null) => {
 };
 
 // Comprehensive image fetching with robust error handling
-export const getPropertyStockImages = async (query, unsplashInstance = null) => {
+const getPropertyStockImages = async (query, unsplashInstance = null) => {
   // Placeholder for development/testing
   if (!process.env.REACT_APP_UNSPLASH_ACCESS_KEY && !unsplashInstance) {
-    console.warn('No Unsplash API key available');
     return 'https://via.placeholder.com/400x300?text=Property+Image';
   }
 
@@ -242,7 +214,9 @@ export const getPropertyStockImages = async (query, unsplashInstance = null) => 
 };
 
 // Export for testing and usage
-export default {
+module.exports = {
+  ImageCache,
+  PersistentImageCache,
   getPropertyStockImages,
   getPropertyTypeImage,
   scoreImageRelevance,
