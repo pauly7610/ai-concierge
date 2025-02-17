@@ -11,6 +11,16 @@
     "scripts": {
         "start": "react-scripts start",
         "build": "react-scripts build",
-        "test": "react-scripts test"
+        "test": "react-scripts test",
+        "test:watch": "react-scripts test --watch",
+        "test:coverage": "react-scripts test --coverage"
+    },
+    "jest": {
+        "roots": ["<rootDir>/src"],
+        "testEnvironment": "jsdom",
+        "moduleNameMapper": {
+            "^@/(.*)$": "<rootDir>/src/$1"
+        },
+        "setupFilesAfterEnv": ["<rootDir>/src/setupTests.js"]
     }
 } 
