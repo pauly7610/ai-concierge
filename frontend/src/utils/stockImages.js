@@ -67,7 +67,7 @@ class ImageCache {
 
     expiredKeys.forEach(key => this.cache.delete(key));
     
-    // If still over max size, remove oldest entries
+    // Ensure we don't exceed max size
     while (this.cache.size > this.maxSize) {
       const oldestKey = [...this.cache.entries()]
         .reduce((oldest, current) => 
@@ -76,18 +76,11 @@ class ImageCache {
       
       this.cache.delete(oldestKey);
     }
-
-    // Ensure we don't exceed max size
-    if (this.cache.size > this.maxSize) {
-      const excessEntries = [...this.cache.entries()]
-        .sort((a, b) => a[1].timestamp - b[1].timestamp)
-        .slice(0, this.cache.size - this.maxSize);
-      
-      excessEntries.forEach(([key]) => this.cache.delete(key));
-    }
   }
 
   getStats() {
+    // Prune before returning stats to ensure accurate count
+    this.prune();
     return {
       currentSize: this.cache.size,
       maxSize: this.maxSize
@@ -238,7 +231,10 @@ const getPropertyStockImages = async (query, unsplashInstance = null) => {
     
     return fallbackImage;
   } catch (error) {
-    console.error('Image Fetch Error:', error);
+    // Only log in non-test environments
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('Image Fetch Error:', error);
+    }
     return fallbackImage;
   }
 };

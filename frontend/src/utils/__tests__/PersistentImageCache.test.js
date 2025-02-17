@@ -70,15 +70,19 @@ describe('PersistentImageCache', () => {
     const mockKeys = ['ZILLOW_IMAGE_CACHE_key1', 'ZILLOW_IMAGE_CACHE_key2'];
     
     // Simulate localStorage with specific keys
-    localStorageMock.getItem.mockImplementation(key => 
-      mockKeys.includes(key) ? JSON.stringify({ data: 'test', expiry: Date.now() + 1000 }) : null
-    );
+    const removeItemSpy = jest.fn();
     
-    // Simulate keys in localStorage
-    Object.defineProperty(localStorageMock, 'length', { value: mockKeys.length });
+    // Mock Object.keys to return our mock keys
+    Object.keys = jest.fn().mockReturnValue(mockKeys);
     
-    // Spy on removeItem
-    const removeItemSpy = jest.spyOn(localStorageMock, 'removeItem');
+    // Mock localStorage methods
+    const mockLocalStorage = {
+      removeItem: removeItemSpy
+    };
+
+    // Create cache with mocked localStorage
+    const cache = new PersistentImageCache();
+    cache.storage = mockLocalStorage;
 
     cache.clear();
 
