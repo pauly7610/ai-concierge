@@ -106,4 +106,20 @@ describe('Stock Images Utility', () => {
       expect(score).toBeLessThanOrEqual(1);
     });
   });
+
+  it('handles missing API key', async () => {
+    delete process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
+
+    await expect(getPropertyStockImages('modern house'))
+      .rejects.toThrow('Missing Unsplash API key');
+  });
+
+  it('handles network timeout', async () => {
+    axios.get.mockImplementation(() => new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Network Timeout')), 11000)
+    ));
+
+    await expect(getPropertyStockImages('modern house'))
+      .rejects.toThrow('Network Timeout');
+  });
 });

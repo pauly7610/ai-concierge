@@ -7,6 +7,9 @@ describe('ImageCache', () => {
     cache = new ImageCache(10); // Small cache for testing
   });
 
+  // Potential Issue: The import assumes ImageCache is exported from stockImages
+  // Recommendation: Verify the export in stockImages.js
+
   it('sets and retrieves cache entries', () => {
     cache.set('key1', 'value1');
     expect(cache.get('key1')).toBe('value1');
@@ -21,6 +24,8 @@ describe('ImageCache', () => {
     jest.advanceTimersByTime(25 * 60 * 60 * 1000);
     
     expect(cache.get('key1')).toBeNull();
+
+    jest.useRealTimers(); // Reset timers
   });
 
   it('prunes cache when approaching max size', () => {

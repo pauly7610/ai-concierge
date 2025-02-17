@@ -18,6 +18,7 @@ describe('PersistentImageCache', () => {
   beforeEach(() => {
     Object.defineProperty(window, 'localStorage', { value: localStorageMock });
     cache = new PersistentImageCache();
+    localStorageMock.clear(); // Reset store before each test
   });
 
   it('sets and retrieves cache entries', () => {
@@ -39,5 +40,25 @@ describe('PersistentImageCache', () => {
     
     const retrievedValue = cache.get('expiredKey');
     expect(retrievedValue).toBeNull();
+
+    jest.useRealTimers(); // Reset timers
+  });
+
+  // Additional recommended tests
+  it('handles JSON parsing errors', () => {
+    // Simulate a corrupt localStorage entry
+    localStorageMock.getItem.mockReturnValueOnce('invalid json');
+    
+    const retrievedValue = cache.get('corruptKey');
+    expect(retrievedValue).toBeNull();
+  });
+
+  it('clears entire cache', () => {
+    cache.set('key1', { data: 'value1' });
+    cache.set('key2', { data: 'value2' });
+    
+    cache.clear();
+
+    expect(localStorageMock.removeItem).toHaveBeenCalledTimes(2);
   });
 });
