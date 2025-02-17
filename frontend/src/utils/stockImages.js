@@ -231,7 +231,7 @@ const getPropertyStockImages = async (query, unsplashInstance = null) => {
     
     return fallbackImage;
   } catch (error) {
-    // Only log in non-test environments
+    // Suppress all console errors during tests
     if (process.env.NODE_ENV !== 'test') {
       console.error('Image Fetch Error:', error);
     }
