@@ -83,8 +83,8 @@ describe('PersistentImageCache', () => {
 
     cache.clear();
 
-    // Use expect().toEqual() instead of .toBe()
-    expect(removeItemSpy.mock.calls.length).toEqual(2);
+    // Use a direct comparison
+    expect(removeItemSpy).toHaveBeenCalledTimes(2);
     mockKeys.forEach(key => {
       expect(removeItemSpy).toHaveBeenCalledWith(key);
     });
