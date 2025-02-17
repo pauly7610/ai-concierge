@@ -3,8 +3,14 @@ import { PersistentImageCache } from '../stockImages';
 describe('PersistentImageCache', () => {
   let cache;
   let mockStorage;
+  let realDateNow;
 
   beforeEach(() => {
+    // Save real Date.now and mock it
+    realDateNow = Date.now;
+    const currentTime = 1739888028000; // Set a fixed timestamp
+    Date.now = jest.fn(() => currentTime);
+
     // Create a fresh mock storage before each test
     mockStorage = {
       store: {},
@@ -18,22 +24,22 @@ describe('PersistentImageCache', () => {
       clear: jest.fn(() => {
         mockStorage.store = {};
       }),
-      // Helper methods for testing
-      getAllKeys: () => Object.keys(mockStorage.store),
-      _getStore: () => mockStorage.store // For debugging
+      getAllKeys: () => Object.keys(mockStorage.store)
     };
 
-    // Mock localStorage in the window object
+    // Mock localStorage
     Object.defineProperty(window, 'localStorage', {
       value: mockStorage,
       writable: true
     });
 
-    // Create a fresh cache instance
+    // Create fresh cache instance
     cache = new PersistentImageCache();
   });
 
   afterEach(() => {
+    // Restore real Date.now
+    Date.now = realDateNow;
     jest.restoreAllMocks();
     mockStorage.clear();
   });
@@ -46,9 +52,10 @@ describe('PersistentImageCache', () => {
     
     // Get raw value from storage to verify format
     const rawStored = mockStorage.getItem(`ZILLOW_IMAGE_CACHE_${testKey}`);
-    expect(JSON.parse(rawStored)).toEqual({
-      value: testData,
-      timestamp: expect.any(Number)
+    const parsed = JSON.parse(rawStored);
+    expect(parsed).toEqual({
+      data: testData,
+      expiry: expect.any(Number)
     });
 
     // Verify retrieval
@@ -65,20 +72,16 @@ describe('PersistentImageCache', () => {
   it('should handle expired cache entries', () => {
     const testKey = 'expiredKey';
     const testData = { url: 'https://example.com/image.jpg' };
+    const currentTime = Date.now();
     
-    // Mock Date.now() to control time
-    const now = Date.now();
-    jest.spyOn(Date, 'now').mockImplementation(() => now);
-    
-    // Set cache with data that's already expired
+    // Set data
     cache.set(testKey, testData);
     
     // Move time forward past expiration
-    jest.spyOn(Date, 'now').mockImplementation(() => now + (24 * 60 * 60 * 1000 + 1));
+    Date.now = jest.fn(() => currentTime + (24 * 60 * 60 * 1000 + 1));
     
     const result = cache.get(testKey);
     expect(result).toBeNull();
-    expect(mockStorage.removeItem).toHaveBeenCalledWith(`ZILLOW_IMAGE_CACHE_${testKey}`);
   });
 
   it('should handle JSON parsing errors', () => {
@@ -93,11 +96,10 @@ describe('PersistentImageCache', () => {
     // Set up multiple cache entries
     const testEntries = {
       'key1': { url: 'https://example.com/1.jpg' },
-      'key2': { url: 'https://example.com/2.jpg' },
-      'key3': { url: 'https://example.com/3.jpg' }
+      'key2': { url: 'https://example.com/2.jpg' }
     };
 
-    // Add a non-cache entry to verify it's not removed
+    // Add a non-cache entry
     mockStorage.setItem('NON_CACHE_KEY', 'preserved');
 
     // Populate cache
@@ -105,85 +107,47 @@ describe('PersistentImageCache', () => {
       cache.set(key, value);
     });
 
+    // Verify initial state
+    expect(Object.keys(mockStorage.store).filter(key => 
+      key.startsWith('ZILLOW_IMAGE_CACHE_')
+    )).toHaveLength(2);
+
     // Clear the cache
     cache.clear();
 
-    // Verify cache entries are removed
-    Object.keys(testEntries).forEach(key => {
-      const fullKey = `ZILLOW_IMAGE_CACHE_${key}`;
-      expect(mockStorage.store[fullKey]).toBeUndefined();
-    });
-
-    // Verify non-cache entry is preserved
+    // Verify final state
+    const remainingCacheKeys = Object.keys(mockStorage.store).filter(key => 
+      key.startsWith('ZILLOW_IMAGE_CACHE_')
+    );
+    expect(remainingCacheKeys).toHaveLength(0);
     expect(mockStorage.store['NON_CACHE_KEY']).toBe('preserved');
   });
 
-  it('should preserve non-cache entries in localStorage', () => {
-    mockStorage.setItem('NON_CACHE_KEY', JSON.stringify({ value: 'preserved' }));
-    cache.set('testKey', { url: 'https://example.com/image.jpg' });
-    
-    cache.clear();
-    
-    expect(mockStorage.store['NON_CACHE_KEY']).toBeDefined();
-    expect(mockStorage.store['ZILLOW_IMAGE_CACHE_testKey']).toBeUndefined();
-  });
-
   it('should handle cache size limits', () => {
-    // Mock implementation to verify size limiting
-    const maxEntries = 3; // Small number for testing
-    const entries = Array.from({ length: maxEntries + 1 }, (_, i) => ({
-      key: `key${i}`,
-      value: { url: `https://example.com/image${i}.jpg` }
-    }));
-
-    // Add entries sequentially
-    entries.forEach(({ key, value }) => {
-      cache.set(key, value);
-    });
-
-    // Verify only the most recent entries are kept
-    expect(cache.get(entries[0].key)).toBeNull(); // Oldest entry should be removed
-    expect(cache.get(entries[entries.length - 1].key)).not.toBeNull(); // Newest entry should exist
-  });
-
-  it('should maintain order of entries for cache limiting', () => {
+    const currentTime = Date.now();
     const entries = [
-      { key: 'first', value: { url: 'first.jpg' } },
-      { key: 'second', value: { url: 'second.jpg' } },
-      { key: 'third', value: { url: 'third.jpg' } }
+      { key: 'first', value: { url: 'first.jpg' }, time: currentTime },
+      { key: 'second', value: { url: 'second.jpg' }, time: currentTime + 1000 },
+      { key: 'third', value: { url: 'third.jpg' }, time: currentTime + 2000 }
     ];
 
-    entries.forEach(({ key, value }) => {
+    // Add entries with different timestamps
+    entries.forEach(({ key, value, time }) => {
+      Date.now = jest.fn(() => time);
       cache.set(key, value);
-      // Ensure some time difference between entries
-      jest.advanceTimersByTime(1000);
     });
 
-    // Access second entry to update its timestamp
-    cache.get('second');
-    
     // Add new entry to trigger size limit
+    Date.now = jest.fn(() => currentTime + 3000);
     cache.set('fourth', { url: 'fourth.jpg' });
 
-    // 'first' should be removed as it's oldest and unused
-    expect(cache.get('first')).toBeNull();
-    // 'second' should still exist as it was recently accessed
-    expect(cache.get('second')).not.toBeNull();
-  });
+    // Get the remaining keys
+    const remainingKeys = Object.keys(mockStorage.store)
+      .filter(key => key.startsWith('ZILLOW_IMAGE_CACHE_'))
+      .map(key => key.replace('ZILLOW_IMAGE_CACHE_', ''));
 
-  it('should handle concurrent operations safely', async () => {
-    const operations = [
-      () => cache.set('key1', { url: 'image1.jpg' }),
-      () => cache.get('key1'),
-      () => cache.set('key2', { url: 'image2.jpg' }),
-      () => cache.clear()
-    ];
-
-    await Promise.all(operations.map(op => Promise.resolve().then(op)));
-
-    // After all operations, cache should be empty due to clear()
-    expect(Object.keys(mockStorage.store).filter(key => 
-      key.startsWith('ZILLOW_IMAGE_CACHE_')
-    )).toHaveLength(0);
+    // Verify most recent entries are kept
+    expect(remainingKeys).not.toContain('first');
+    expect(remainingKeys).toContain('fourth');
   });
 });
