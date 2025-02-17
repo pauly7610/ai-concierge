@@ -5,8 +5,8 @@
     "scripts": {
         "start": "react-scripts start",
         "build": "react-scripts build",
-        "test": "react-scripts test",
-        "test:coverage": "react-scripts test --coverage",
+        "test": "react-scripts test --env=jsdom",
+        "test:coverage": "react-scripts test --env=jsdom --coverage",
         "lint": "eslint src --ext .js,.jsx",
         "format": "prettier --write \"src/**/*.{js,jsx,json,css}\""
     },
@@ -48,7 +48,6 @@
         ],
         "transform": {
             "^.+\\.(js|jsx)$": "babel-jest"
-        },
-        "testEnvironment": "jsdom"
+        }
     }
 } 
