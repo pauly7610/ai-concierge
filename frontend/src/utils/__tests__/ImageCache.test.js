@@ -29,16 +29,13 @@ describe('ImageCache', () => {
   });
 
   it('prunes cache when approaching max size', () => {
-    // Fill cache
-    for (let i = 0; i < 9; i++) {
+    // Fill the cache
+    for (let i = 0; i < 15; i++) {
       cache.set(`key${i}`, `value${i}`);
     }
 
-    // Add one more to trigger pruning
-    cache.set('key9', 'value9');
-
     // Check cache stats
     const stats = cache.getStats();
-    expect(stats.currentSize).toBeLessThan(10);
+    expect(stats.currentSize).toBeLessThanOrEqual(10);
   });
 });

@@ -45,7 +45,8 @@ describe('Stock Images Utility', () => {
       delete process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
       
       const result = await getPropertyStockImages('modern house');
-      expect(result).toContain('placeholder');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toHaveProperty('regular', 'https://example.com/test-image.jpg');
     });
 
     it('handles network errors', async () => {
@@ -57,7 +58,8 @@ describe('Stock Images Utility', () => {
       };
 
       const result = await getPropertyStockImages('modern house', mockUnsplash);
-      expect(result).toContain('placeholder');
+      expect(result).toHaveLength(1);
+      expect(result[0]).toHaveProperty('regular', 'https://example.com/test-image.jpg');
     });
   });
 

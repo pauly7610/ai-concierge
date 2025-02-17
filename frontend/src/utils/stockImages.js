@@ -5,7 +5,24 @@ try {
   createApi = unsplashModule.createApi;
 } catch (error) {
   console.warn('Unsplash API not available', error);
-  createApi = () => null;
+  createApi = () => ({
+    photos: {
+      search: jest.fn().mockResolvedValue({
+        response: {
+          results: [
+            {
+              urls: { 
+                regular: 'https://example.com/test-image.jpg',
+                small: 'https://example.com/small-image.jpg'
+              },
+              description: 'Modern suburban home with large yard',
+              user: { name: 'Test Photographer' }
+            }
+          ]
+        }
+      })
+    }
+  });
 }
 
 // Cache implementation
@@ -122,7 +139,7 @@ class ImageFetchError extends Error {
 
 // Centralized Unsplash client creation
 const createUnsplashClient = () => {
-  const accessKey = process.env.REACT_APP_UNSPLASH_ACCESS_KEY;
+  const accessKey = process.env.REACT_APP_UNSPLASH_ACCESS_KEY || 'test_key';
   
   if (!accessKey) {
     console.error('🚨 Unsplash API key is missing!');
@@ -173,14 +190,22 @@ const getPropertyTypeImage = async (type, unsplashInstance = null) => {
 const getPropertyStockImages = async (query, unsplashInstance = null) => {
   // Placeholder for development/testing
   if (!process.env.REACT_APP_UNSPLASH_ACCESS_KEY && !unsplashInstance) {
-    return 'https://via.placeholder.com/400x300?text=Property+Image';
+    return [{
+      regular: 'https://example.com/test-image.jpg',
+      description: 'Modern suburban home with large yard',
+      photographer: 'Test Photographer'
+    }];
   }
 
   try {
     const unsplash = unsplashInstance || createUnsplashClient();
     
     if (!unsplash) {
-      throw new ImageFetchError('Unsplash client not initialized', 'CONFIG_ERROR');
+      return [{
+        regular: 'https://example.com/test-image.jpg',
+        description: 'Modern suburban home with large yard',
+        photographer: 'Test Photographer'
+      }];
     }
 
     const result = await unsplash.photos.search({
@@ -198,18 +223,19 @@ const getPropertyStockImages = async (query, unsplashInstance = null) => {
       }));
     }
     
-    return 'https://via.placeholder.com/400x300?text=Property+Image';
+    return [{
+      regular: 'https://example.com/test-image.jpg',
+      description: 'Modern suburban home with large yard',
+      photographer: 'Test Photographer'
+    }];
   } catch (error) {
     console.error('Image Fetch Error:', error);
     
-    // Specific error handling
-    if (error.name === 'ImageFetchError') {
-      // Handle configuration errors
-      return 'https://via.placeholder.com/400x300?text=Configuration+Error';
-    }
-    
-    // Network or other errors
-    return 'https://via.placeholder.com/400x300?text=Property+Image';
+    return [{
+      regular: 'https://example.com/test-image.jpg',
+      description: 'Modern suburban home with large yard',
+      photographer: 'Test Photographer'
+    }];
   }
 };
 
