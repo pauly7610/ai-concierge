@@ -259,24 +259,25 @@ class PersistentImageCache {
       .filter(key => key.startsWith(this.CACHE_KEY))
       .forEach(key => this.storage.removeItem(key));
   }
+}
 
 
 
 // Error class for better error handling
 
 class ImageFetchError extends Error {
-
-  constructor(message, type) {
-
+  constructor (message, type) {
     super(message);
-
     this.name = 'ImageFetchError';
-
     this.type = type;
-
+    
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
   }
-
 }
+
+
 
 
 
