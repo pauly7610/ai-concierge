@@ -452,18 +452,11 @@ try {
 
 // Export for testing and usage
 
-module.exports = {
-
-ImageCache,
-
-PersistentImageCache,
-
-getPropertyStockImages,
-
-getPropertyTypeImage,
-
-scoreImageRelevance,
-
-ImageFetchError
-
+export {
+  ImageCache,
+  PersistentImageCache,
+  getPropertyStockImages,
+  getPropertyTypeImage,
+  scoreImageRelevance,
+  ImageFetchError
 };

@@ -7,6 +7,4 @@ export {
   getPropertyTypeImage, 
   scoreImageRelevance,
   ImageFetchError 
-} from './utils/stockImages';
-
-// You can add more utility exports here in the future 
+} from './stockImages.js';  // Add .js extension 
