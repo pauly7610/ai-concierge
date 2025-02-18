@@ -64,6 +64,7 @@ class ImageCache {
   }
   set(key, value) {
 
+    this.cache.set(key, { value, timestamp: Date.now() });
     if (this.cache.size >= this.maxSize) {
 
       this.prune();
@@ -249,15 +250,15 @@ class PersistentImageCache {
 
 
   clear() {
-    Object.keys(this.storage)
-
-    .filter(key => key.startsWith(this.CACHE_KEY))
-
-    .forEach(key => this.storage.removeItem(key));
-
-}
-
-}
+    // Use the underlying store if available (as in our test mock)
+    const storageKeys = this.storage.store 
+      ? Object.keys(this.storage.store) 
+      : Object.keys(this.storage);
+      
+    storageKeys
+      .filter(key => key.startsWith(this.CACHE_KEY))
+      .forEach(key => this.storage.removeItem(key));
+  }
 
 
 
@@ -265,15 +266,15 @@ class PersistentImageCache {
 
 class ImageFetchError extends Error {
 
-constructor(message, type) {
+  constructor(message, type) {
 
-  super(message);
+    super(message);
 
-  this.name = 'ImageFetchError';
+    this.name = 'ImageFetchError';
 
-  this.type = type;
+    this.type = type;
 
-}
+  }
 
 }
 
