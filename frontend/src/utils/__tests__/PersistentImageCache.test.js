@@ -81,7 +81,7 @@ describe('PersistentImageCache', () => {
     const entries = [
       { key: 'entry1', value: { url: 'first.jpg' } },
       { key: 'entry2', value: { url: 'second.jpg' } },
-      { key: 'entry3', value: { url: 'third.jpg' } },
+      { key:'entry3', value: { url: 'third.jpg' } },
       { key: 'entry4', value: { url: 'fourth.jpg' } }
     ];
 
